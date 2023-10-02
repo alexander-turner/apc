@@ -31,18 +31,22 @@ const openai = new OpenAI({ apiKey: api_key, dangerouslyAllowBrowser: true });
 async function sendPageContent() {
     const textContent = document.body.innerText;
     let text = window.location.href + '\n' + textContent.substring(0, 2000);
-
-    let prompt = `
+    
+    // Retrieve the custom prompt, or use the default if not set
+    let customPrompt = await getObjectFromLocalStorage("customPrompt");
+    let promptTemplate = customPrompt || `
     You are a productivity app, designed to block distractions and keep users focused on their tasks.
     It's obvious what content should be blocked: social media, entertainment, news, and any other non-productive distractions.
-	However, technical and educational content should be allowed. 
+	Technical content should be allowed.
     Should a web page with the following url and content be blocked? Answer only YES or NO, followed by a newline and a brief explanation.
     ===
-    ` + text;
+    `;
+
+    let prompt = promptTemplate + text;
 
     console.log('prompt:', prompt);
 
-    let model = await getObjectFromLocalStorage("model");
+    let model = await getObjectFromLocalStorage("model") || 'gpt-3.5-turbo';
     console.log("use model", model);
 
     const completion = await openai.chat.completions.create({
