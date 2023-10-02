@@ -91,45 +91,37 @@ function blockPage(info, href) {
 }
 
 function hidePage() {
-
     var div = document.createElement("div");
     div.id = "hide_overlay_012345";
     div.style.position = "fixed";
-
     div.style.width = "100%";
     div.style.height = "100%";
-    div.style.backgroundColor = "rgba(255,255,255,1)";
-
+    div.style.backgroundColor = "rgba(255,255,255,0.8)";
     div.style.top = "0";
     div.style.left = "0";
     div.style.right = "0";
     div.style.bottom = "0";
     div.style.zIndex = "1000000";
-
     div.style.textAlign = "center";
     div.style.paddingTop = "50px";
     div.style.fontFamily = "sans-serif";
     div.style.fontSize = "24px";
-    
     div.innerHTML = "Validating page content...";
-    document.body.prepend(div);
+    document.body.appendChild(div); // Changed from prepend to append so it's on top.
 }
 
 let cached = await getObjectFromLocalStorage(window.location.href);
 console.log("check cached", cached);
 
 if (cached) {
-
     if (cached.decision) {
         blockPage(cached.info, cached.href);
+    } else {
+        hidePage(); // Hide the overlay if the page is allowed.
     }
-
 } else {
-
-    hidePage();
-
+    hidePage(); // Initially show the overlay until the rating is received.
     if (document.readyState === 'complete') {
-        // If the page is already loaded, send the message immediately
         console.log('Page is already loaded, sending message immediately')
         sendPageContent();
     } else {
@@ -137,3 +129,4 @@ if (cached) {
         window.addEventListener('load', sendPageContent);
     }
 }
+
