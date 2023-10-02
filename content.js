@@ -22,37 +22,32 @@ const saveObjectInLocalStorage = async function(obj) {
         reject(ex);
       }
     });
-  };
+};
 
 let api_key = await getObjectFromLocalStorage("apiKey");
-console.log("api_key", api_key)
+console.log("api_key", api_key);
 const openai = new OpenAI({ apiKey: api_key, dangerouslyAllowBrowser: true });
 
 async function sendPageContent() {
-
     const textContent = document.body.innerText;
     let text = window.location.href + '\n' + textContent.substring(0, 2000);
 
     let prompt = `
-    You are a parental control app, designed to protect children (of age 2-13) from inappropriate content.
-    It's obvious what content should be blocked: violence, sexual, hateful, social networks, criminal activity, 
-    crimes, war crimes, atrocities, medical, drugs, explicit content, pornography, misinformation, pseudoscience etc...
-    Anything that would disturb a child. Please err on the safe side!
-    Should a web page with following url and content be blocked? answer only YES or NO, followed with a newline and a brief explanation.
+    You are a productivity app, designed to block distractions and keep users focused on their tasks.
+    It's obvious what content should be blocked: social media, entertainment, news, and any other non-productive distractions.
+	However, technical and educational content should be allowed. 
+    Should a web page with the following url and content be blocked? Answer only YES or NO, followed by a newline and a brief explanation.
     ===
     ` + text;
 
     console.log('prompt:', prompt);
 
-    // let model = await getObjectFromLocalStorage("model");
-	let model = 'gpt-3.5-turbo';
-
+    let model = await getObjectFromLocalStorage("model");
     console.log("use model", model);
 
     const completion = await openai.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: model,
-        // model: 'gpt-3.5-turbo',        
     });
 
     let a = completion.choices[0].message.content;
@@ -73,41 +68,19 @@ async function sendPageContent() {
 
     if (do_block) {
         blockPage(info, window.location.href);
-    } else {
-        document.getElementById("hide_overlay_012345").style.display = "none";
     }
 }
 
 function blockPage(info, href) {
-    window.stop()
+    window.stop();
     document.querySelector('head').innerHTML = "";
     document.querySelector('body').innerHTML = `
     <div>
-        <h1>This page was blocked by a content filter</h1>
+        <h1>This page was blocked to keep you focused</h1>
         <h3>${href}, reason for the block:</h3>
         <p>${info}<\p>
     </div>
-    `
-}
-
-function hidePage() {
-    var div = document.createElement("div");
-    div.id = "hide_overlay_012345";
-    div.style.position = "fixed";
-    div.style.width = "100%";
-    div.style.height = "100%";
-    div.style.backgroundColor = "rgba(255,255,255,0.8)";
-    div.style.top = "0";
-    div.style.left = "0";
-    div.style.right = "0";
-    div.style.bottom = "0";
-    div.style.zIndex = "1000000";
-    div.style.textAlign = "center";
-    div.style.paddingTop = "50px";
-    div.style.fontFamily = "sans-serif";
-    div.style.fontSize = "24px";
-    div.innerHTML = "Validating page content...";
-    document.body.appendChild(div); // Changed from prepend to append so it's on top.
+    `;
 }
 
 let cached = await getObjectFromLocalStorage(window.location.href);
@@ -116,11 +89,8 @@ console.log("check cached", cached);
 if (cached) {
     if (cached.decision) {
         blockPage(cached.info, cached.href);
-    } else {
-        hidePage(); // Hide the overlay if the page is allowed.
     }
 } else {
-    hidePage(); // Initially show the overlay until the rating is received.
     if (document.readyState === 'complete') {
         console.log('Page is already loaded, sending message immediately')
         sendPageContent();
