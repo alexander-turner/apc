@@ -44,7 +44,8 @@ async function sendPageContent() {
 
     console.log('prompt:', prompt);
 
-    let model = await getObjectFromLocalStorage("model");
+    // let model = await getObjectFromLocalStorage("model");
+	let model = 'gpt-3.5-turbo';
 
     console.log("use model", model);
 
